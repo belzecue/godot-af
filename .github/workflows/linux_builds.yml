@@ -1,10 +1,10 @@
-name: 🐧 Linux Builds
+name: Linux Builds
 on: [push, pull_request]
 
 # Global Settings
 env:
   # Only used for the cache key. Increment version to force clean build.
-  GODOT_BASE_BRANCH: 3.5
+  GODOT_BASE_BRANCH: main
   SCONSFLAGS: verbose=yes warnings=all werror=yes
 
 concurrency:
