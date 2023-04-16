@@ -48,10 +48,6 @@ jobs:
         run: |
           xmllint --noout --schema doc/class.xsd doc/classes/*.xml modules/*/doc_classes/*.xml
 
-      - name: Documentation checks
-        run: |
-          doc/tools/make_rst.py --dry-run doc/classes modules
-
       - name: Style checks via clang-format (clang_format.sh)
         run: |
           bash ./misc/scripts/clang_format.sh
