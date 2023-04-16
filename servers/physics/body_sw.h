@@ -46,7 +46,7 @@ class BodySW : public CollisionObjectSW {
 
 	Vector3 prev_linear_velocity;
 	Vector3 prev_angular_velocity;
-	
+
 	Vector3 biased_linear_velocity;
 	Vector3 biased_angular_velocity;
 	real_t mass;
@@ -220,7 +220,7 @@ public:
 
 	_FORCE_INLINE_ Vector3 get_prev_linear_velocity() const { return prev_linear_velocity; }
 	_FORCE_INLINE_ Vector3 get_prev_angular_velocity() const { return prev_angular_velocity; }
-	
+
 	_FORCE_INLINE_ const Vector3 &get_biased_linear_velocity() const { return biased_linear_velocity; }
 	_FORCE_INLINE_ const Vector3 &get_biased_angular_velocity() const { return biased_angular_velocity; }
 

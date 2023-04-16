@@ -49,7 +49,7 @@ class Body2DSW : public CollisionObject2DSW {
 
 	Vector2 prev_linear_velocity;
 	real_t prev_angular_velocity = 0.0;
-	
+
 	real_t linear_damp;
 	real_t angular_damp;
 	real_t gravity_scale;
@@ -200,7 +200,7 @@ public:
 
 	_FORCE_INLINE_ Vector2 get_prev_linear_velocity() const { return prev_linear_velocity; }
 	_FORCE_INLINE_ real_t get_prev_angular_velocity() const { return prev_angular_velocity; }
-	
+
 	_FORCE_INLINE_ void set_biased_linear_velocity(const Vector2 &p_velocity) { biased_linear_velocity = p_velocity; }
 	_FORCE_INLINE_ Vector2 get_biased_linear_velocity() const { return biased_linear_velocity; }
 
