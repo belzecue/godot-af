@@ -1,0 +1,137 @@
+diff --git a/servers/physics/body_pair_sw.cpp b/servers/physics/body_pair_sw.cpp
+index f0cc8ae..cd07a78 100644
+--- a/servers/physics/body_pair_sw.cpp
++++ b/servers/physics/body_pair_sw.cpp
+@@ -34,18 +34,6 @@
+ #include "core/os/os.h"
+ #include "space_sw.h"
+ 
+-/*
+-#define NO_ACCUMULATE_IMPULSES
+-#define NO_SPLIT_IMPULSES
+-
+-#define NO_FRICTION
+-*/
+-
+-#define NO_TANGENTIALS
+-/* BODY PAIR */
+-
+-//#define ALLOWED_PENETRATION 0.01
+-#define RELAXATION_TIMESTEPS 3
+ #define MIN_VELOCITY 0.0001
+ #define MAX_BIAS_ROTATION (Math_PI / 8)
+ 
+@@ -335,9 +323,9 @@ bool BodyPairSW::setup(real_t p_step) {
+ 
+ 		c.bounce = combine_bounce(A, B);
+ 		if (c.bounce) {
+-			Vector3 crA = A->get_angular_velocity().cross(c.rA);
+-			Vector3 crB = B->get_angular_velocity().cross(c.rB);
+-			Vector3 dv = B->get_linear_velocity() + crB - A->get_linear_velocity() - crA;
++			Vector3 crA = A->get_prev_angular_velocity().cross(c.rA);
++			Vector3 crB = B->get_prev_angular_velocity().cross(c.rB);
++			Vector3 dv = B->get_prev_linear_velocity() + crB - A->get_prev_linear_velocity() - crA;
+ 			//normal impule
+ 			c.bounce = c.bounce * dv.dot(c.normal);
+ 		}
+diff --git a/servers/physics/body_sw.cpp b/servers/physics/body_sw.cpp
+index e52cd13..76cdb88 100644
+--- a/servers/physics/body_sw.cpp
++++ b/servers/physics/body_sw.cpp
+@@ -509,6 +509,9 @@ void BodySW::integrate_forces(real_t p_step) {
+ 		area_linear_damp=damp_area->get_linear_damp();
+ 	*/
+ 
++	prev_linear_velocity = linear_velocity;
++	prev_angular_velocity = angular_velocity;
++	
+ 	Vector3 motion;
+ 	bool do_motion = false;
+ 
+diff --git a/servers/physics/body_sw.h b/servers/physics/body_sw.h
+index 42eb7e2..51ebd51 100644
+--- a/servers/physics/body_sw.h
++++ b/servers/physics/body_sw.h
+@@ -44,6 +44,9 @@ class BodySW : public CollisionObjectSW {
+ 	Vector3 linear_velocity;
+ 	Vector3 angular_velocity;
+ 
++	Vector3 prev_linear_velocity;
++	Vector3 prev_angular_velocity;
++	
+ 	Vector3 biased_linear_velocity;
+ 	Vector3 biased_angular_velocity;
+ 	real_t mass;
+@@ -215,6 +218,9 @@ public:
+ 	_FORCE_INLINE_ void set_angular_velocity(const Vector3 &p_velocity) { angular_velocity = p_velocity; }
+ 	_FORCE_INLINE_ Vector3 get_angular_velocity() const { return angular_velocity; }
+ 
++	_FORCE_INLINE_ Vector3 get_prev_linear_velocity() const { return prev_linear_velocity; }
++	_FORCE_INLINE_ Vector3 get_prev_angular_velocity() const { return prev_angular_velocity; }
++	
+ 	_FORCE_INLINE_ const Vector3 &get_biased_linear_velocity() const { return biased_linear_velocity; }
+ 	_FORCE_INLINE_ const Vector3 &get_biased_angular_velocity() const { return biased_angular_velocity; }
+ 
+diff --git a/servers/physics_2d/body_2d_sw.cpp b/servers/physics_2d/body_2d_sw.cpp
+index 28de792..22032ed 100644
+--- a/servers/physics_2d/body_2d_sw.cpp
++++ b/servers/physics_2d/body_2d_sw.cpp
+@@ -461,6 +461,9 @@ void Body2DSW::integrate_forces(real_t p_step) {
+ 		area_linear_damp=damp_area->get_linear_damp();
+ 	*/
+ 
++	prev_linear_velocity = linear_velocity;
++	prev_angular_velocity = angular_velocity;
++	
+ 	Vector2 motion;
+ 	bool do_motion = false;
+ 
+diff --git a/servers/physics_2d/body_2d_sw.h b/servers/physics_2d/body_2d_sw.h
+index 7bd3019..e3bc589 100644
+--- a/servers/physics_2d/body_2d_sw.h
++++ b/servers/physics_2d/body_2d_sw.h
+@@ -47,6 +47,9 @@ class Body2DSW : public CollisionObject2DSW {
+ 	Vector2 linear_velocity;
+ 	real_t angular_velocity;
+ 
++	Vector2 prev_linear_velocity;
++	real_t prev_angular_velocity = 0.0;
++	
+ 	real_t linear_damp;
+ 	real_t angular_damp;
+ 	real_t gravity_scale;
+@@ -195,6 +198,9 @@ public:
+ 	_FORCE_INLINE_ void set_angular_velocity(real_t p_velocity) { angular_velocity = p_velocity; }
+ 	_FORCE_INLINE_ real_t get_angular_velocity() const { return angular_velocity; }
+ 
++	_FORCE_INLINE_ Vector2 get_prev_linear_velocity() const { return prev_linear_velocity; }
++	_FORCE_INLINE_ real_t get_prev_angular_velocity() const { return prev_angular_velocity; }
++	
+ 	_FORCE_INLINE_ void set_biased_linear_velocity(const Vector2 &p_velocity) { biased_linear_velocity = p_velocity; }
+ 	_FORCE_INLINE_ Vector2 get_biased_linear_velocity() const { return biased_linear_velocity; }
+ 
+diff --git a/servers/physics_2d/body_pair_2d_sw.cpp b/servers/physics_2d/body_pair_2d_sw.cpp
+index 61488e9..cebb87a 100644
+--- a/servers/physics_2d/body_pair_2d_sw.cpp
++++ b/servers/physics_2d/body_pair_2d_sw.cpp
+@@ -32,7 +32,6 @@
+ #include "collision_solver_2d_sw.h"
+ #include "space_2d_sw.h"
+ 
+-#define POSITION_CORRECTION
+ #define ACCUMULATE_IMPULSES
+ 
+ void BodyPair2DSW::_add_contact(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_self) {
+@@ -423,9 +422,9 @@ bool BodyPair2DSW::setup(real_t p_step) {
+ 
+ 		c.bounce = combine_bounce(A, B);
+ 		if (c.bounce) {
+-			Vector2 crA(-A->get_angular_velocity() * c.rA.y, A->get_angular_velocity() * c.rA.x);
+-			Vector2 crB(-B->get_angular_velocity() * c.rB.y, B->get_angular_velocity() * c.rB.x);
+-			Vector2 dv = B->get_linear_velocity() + crB - A->get_linear_velocity() - crA;
++			Vector2 crA(-A->get_prev_angular_velocity() * c.rA.y, A->get_prev_angular_velocity() * c.rA.x);
++			Vector2 crB(-B->get_prev_angular_velocity() * c.rB.y, B->get_prev_angular_velocity() * c.rB.x);
++			Vector2 dv = B->get_prev_linear_velocity() + crB - A->get_prev_linear_velocity() - crA;
+ 			c.bounce = c.bounce * dv.dot(c.normal);
+ 		}
+ 
